@@ -1,0 +1,1 @@
+Added `rac2_cost_weight` to configure RAC2's positive compaction-cost weight in `benefit / (q * cost) - 1`, defaulting to 1. RAC2 now scores input bytes divided by the observed rewrite-I/O rate; output bytes remain included in physical I/O accounting.
