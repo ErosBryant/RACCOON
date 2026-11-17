@@ -1,6 +1,6 @@
-# RACCOON
+# 🦝 RACCOON: Read-Driven Compaction for LSM-Trees
 
-**Read-driven compaction for LSM-tree key-value stores**
+**Observe read costs. Choose worthwhile compactions. Align with writes.**
 
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)](INSTALL.md)
 [![Benchmark: db_bench](https://img.shields.io/badge/benchmark-db__bench-green)](#quick-start)
@@ -9,28 +9,42 @@
 This repository contains the RocksDB-based implementation accompanying our
 **IEEE ICDE 2027 submission (Paper ID: 2123)**:
 
-> **Revisiting Read-Driven Compaction in LSM-Trees**
+## ✨ Revisiting Read-Driven Compaction in LSM-Trees
 
-[Overview](#overview) · [Build](#build) · [Quick start](#quick-start) ·
-[Benchmarks](#benchmarks) · [Configuration](#configuration) · [Results](#results)
+📦 **This repository includes:**
 
-## Overview
+- 💻 **RACCOON implementation** built on RocksDB.
+- 📊 **Benchmark scripts** comparing RocksDB, RTC, and RACCOON.
+- ⚙️ **Build and experiment instructions** for a quick artifact evaluation.
+
+[🔍 Overview](#overview) · [🛠️ Build](#build) · [🚀 Quick start](#quick-start) ·
+[🧪 Benchmarks](#benchmarks) · [⚙️ Configuration](#configuration) · [📊 Results](#results)
+
+---
+
+<a id="overview"></a>
+
+## 🔍 Overview
 
 RACCOON uses read-path observations to decide when compaction is worthwhile and
 which SSTables should participate. It combines three mechanisms:
 
 | Mechanism | Purpose |
 | --- | --- |
-| Miss-latency profiling | Track per-SSTable hits, misses, and accumulated miss latency. |
-| Efficiency-based admission | Compare the expected read benefit of a complete compaction candidate against its modeled rewrite cost. |
-| Write-aligned selection (WAS) | Prefer candidates that also serve projected write-side maintenance. |
+| ⏱️ Miss-latency profiling | Track per-SSTable hits, misses, and accumulated miss latency. |
+| ⚖️ Efficiency-based admission | Compare the expected read benefit of a complete compaction candidate against its modeled rewrite cost. |
+| 🔗 Write-aligned selection (WAS) | Prefer candidates that also serve projected write-side maintenance. |
 
 The scripts in [`script/`](script/) provide a small, self-contained evaluation
 with random writes and random reads. They compare ordinary RocksDB compaction,
 read-triggered compaction (RTC), and RACCOON using the same benchmark binary and
 workload settings. No external datasets are required.
 
-## Build
+---
+
+<a id="build"></a>
+
+## 🛠️ Build Instructions
 
 The benchmark instructions below target **Linux** with Bash, GNU Make, Git,
 a C++20 compiler (GCC 11 or newer), and gflags 2.2 or newer.
@@ -51,7 +65,11 @@ AUTO_CLEAN=1 make -j"$(nproc)" DEBUG_LEVEL=0 db_bench
 high, reduce the number of parallel jobs. See [INSTALL.md](INSTALL.md) for
 additional build options and supported platforms.
 
-## Quick start
+---
+
+<a id="quick-start"></a>
+
+## 🚀 Quick Start
 
 Run all three configurations, each with a separate, fresh database:
 
@@ -64,17 +82,25 @@ By default, each configuration performs **1,000,000 random writes** followed by
 values, a 32 MiB block cache, and compression disabled. Allow several GiB of
 free disk space for the three databases and their temporary compaction files.
 
+### 🎯 Installation Check
+
 For a short installation check:
 
 ```bash
 NUM=10000 READS=10000 bash script/run_all.sh
 ```
 
-The runner prints the result directory and saves a `summary.txt` containing
+📂 The runner prints the result directory and saves a `summary.txt` containing
 throughput and average latency for each configuration. It creates a new result
 directory on every invocation and retains the databases for inspection.
 
-## Benchmarks
+---
+
+<a id="benchmarks"></a>
+
+## 🧪 Running Benchmarks
+
+### ✍️ Random Writes and 🔎 Random Reads
 
 The individual scripts default to RACCOON. Run them in this order:
 
@@ -96,9 +122,9 @@ MODE=baseline bash script/readrandom.sh
 
 | Mode | Configuration |
 | --- | --- |
-| `baseline` | RACCOON and RTC disabled; ordinary automatic compaction enabled. |
-| `rtc` | RACCOON disabled; `read_triggered_compaction_threshold=0.01`. |
-| `rac` | RACCOON enabled with `rac_design_option=3` and write-aligned selection enabled. |
+| 🪨 `baseline` | RACCOON and RTC disabled; ordinary automatic compaction enabled. |
+| 🔄 `rtc` | RACCOON disabled; `read_triggered_compaction_threshold=0.01`. |
+| 🦝 `rac` | RACCOON enabled with `rac_design_option=3` and write-aligned selection enabled. |
 
 The `rac` mode selects the current time-based policy, using observed rewrite
 bandwidth to model compaction input cost. `rac_design_option=2` selects the
@@ -109,7 +135,11 @@ rather than a prediction of total compaction job time.
 for another load. For `readrandom`, keep `MODE`, `DB_ROOT`, `NUM`, `KEY_SIZE`,
 and `VALUE_SIZE` consistent with the load.
 
-## Configuration
+---
+
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 Override settings with environment variables:
 
@@ -141,12 +171,16 @@ NUM=32000000 READS=50000000 VALUE_SIZE=500 \
   bash script/run_all.sh
 ```
 
-These are simple uniform-random microbenchmarks for checking the artifact and
-exploring performance. Paper-scale results depend on the workload, database
-size, hardware, and cache state; a small run may not trigger read-driven
-compaction. The scripts leave the operating system page cache enabled.
+> 💡 **Experiment scale:** These uniform-random microbenchmarks check the
+> artifact and help explore performance. Paper-scale results depend on the
+> workload, database size, hardware, and cache state; a small run may not
+> trigger read-driven compaction. The operating system page cache stays enabled.
 
-## Results
+---
+
+<a id="results"></a>
+
+## 📊 Reading the Results
 
 Each log records the source revision, benchmark executable, exact command,
 benchmark output, latency histograms, and RocksDB statistics. Look for:
@@ -164,7 +198,9 @@ and post-workload compaction waits are outside the reported foreground
 throughput. Repeat larger experiments on the same device and with the same
 settings when comparing configurations.
 
-## Repository layout
+---
+
+## 🗂️ Repository Layout
 
 | Path | Contents |
 | --- | --- |
@@ -174,7 +210,15 @@ settings when comparing configurations.
 | [`tools/db_bench_tool.cc`](tools/db_bench_tool.cc) | Benchmark workloads and command-line flags. |
 | [`INSTALL.md`](INSTALL.md) | Detailed RocksDB build instructions. |
 
-## License
+## 👤 Maintainer
+
+[**ErosBryant**](https://github.com/ErosBryant) maintains this RACCOON artifact.
+
+---
+
+<a id="license"></a>
+
+## 📄 License
 
 This repository follows RocksDB's dual-license terms: [Apache 2.0](LICENSE.Apache)
 or [GPLv2](COPYING). See the license files for details.
