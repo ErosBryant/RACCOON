@@ -116,3 +116,8 @@ tools/__pycache__/
 !docs/**
 /MooseLSM/
 /trace-zhao/
+
+# Local experiments and generated benchmark data/results.
+/test_sh/
+/benchmark-data/
+/benchmark-results/
